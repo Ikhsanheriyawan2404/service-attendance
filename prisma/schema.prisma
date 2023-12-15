@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model attendances {
+  id          Int       @id @default(autoincrement())
+  user_id     Int
+  schedule_id Int
+  date        DateTime  @db.Date
+  status      String    @db.VarChar(255)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+  schedules   schedules @relation(fields: [schedule_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "attendances_schedule_id_foreign")
+  users       users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "attendances_user_id_foreign")
+}
+
+model failed_jobs {
+  id         Int      @id @default(autoincrement())
+  uuid       String   @unique(map: "failed_jobs_uuid_unique") @db.VarChar(255)
+  connection String
+  queue      String
+  payload    String
+  exception  String
+  failed_at  DateTime @default(now()) @db.Timestamp(0)
+}
+
+model grades {
+  id         Int         @id @default(autoincrement())
+  name       String      @db.VarChar(255)
+  created_at DateTime?   @db.Timestamp(0)
+  updated_at DateTime?   @db.Timestamp(0)
+  schedules  schedules[]
+}
+
+model migrations {
+  id        Int    @id @default(autoincrement())
+  migration String @db.VarChar(255)
+  batch     Int
+}
+
+model password_reset_tokens {
+  email      String    @id @db.VarChar(255)
+  token      String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+}
+
+model personal_access_tokens {
+  id             Int       @id @default(autoincrement())
+  tokenable_type String    @db.VarChar(255)
+  tokenable_id   Int
+  name           String    @db.VarChar(255)
+  token          String    @unique(map: "personal_access_tokens_token_unique") @db.VarChar(64)
+  abilities      String?
+  last_used_at   DateTime? @db.Timestamp(0)
+  expires_at     DateTime? @db.Timestamp(0)
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+
+  @@index([tokenable_type, tokenable_id], map: "personal_access_tokens_tokenable_type_tokenable_id_index")
+}
+
+model schedules {
+  id          Int           @id @default(autoincrement())
+  grade_id    Int
+  subject_id  Int
+  day         String        @db.VarChar(255)
+  start_time  DateTime      @db.Time(0)
+  end_time    DateTime      @db.Time(0)
+  created_at  DateTime?     @db.Timestamp(0)
+  updated_at  DateTime?     @db.Timestamp(0)
+  attendances attendances[]
+  grades      grades        @relation(fields: [grade_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "schedules_grade_id_foreign")
+  subjects    subjects      @relation(fields: [subject_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "schedules_subject_id_foreign")
+}
+
+model subjects {
+  id         Int         @id @default(autoincrement())
+  name       String      @db.VarChar(255)
+  created_at DateTime?   @db.Timestamp(0)
+  updated_at DateTime?   @db.Timestamp(0)
+  schedules  schedules[]
+}
+
+model users {
+  id                Int           @id @default(autoincrement())
+  name              String        @db.VarChar(255)
+  email             String        @unique(map: "users_email_unique") @db.VarChar(255)
+  email_verified_at DateTime?     @db.Timestamp(0)
+  password          String        @db.VarChar(255)
+  remember_token    String?       @db.VarChar(100)
+  created_at        DateTime?     @db.Timestamp(0)
+  updated_at        DateTime?     @db.Timestamp(0)
+  attendances       attendances[]
+}
